@@ -1,651 +1,501 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>폼림 연습기</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  background:#f0f0f0;min-height:100vh;
+  display:flex;justify-content:center;padding-bottom:40px;
+}
+#wrap{width:100%;max-width:430px;background:#f5f5f5;min-height:100vh;}
 
-body {
-  font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  background: #f0f0f0;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  padding: 0 0 40px;
+/* 상단 설정 */
+.top-bar{
+  background:#fff;padding:12px 14px;
+  border-bottom:1px solid #e8e8e8;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
 }
-
-#game-wrap {
-  width: 100%;
-  max-width: 430px;
-  background: #f5f5f5;
-  min-height: 100vh;
-  position: relative;
+.top-bar label{font-size:13px;color:#888;white-space:nowrap;}
+.time-pick{
+  display:flex;align-items:center;gap:3px;
+  background:#f7f7f7;border:1.5px solid #ddd;
+  border-radius:8px;padding:7px 10px;
+  font-size:16px;font-weight:700;color:#111;
+  font-variant-numeric:tabular-nums;
 }
-
-/* ── 상단 설정 패널 ── */
-.config-panel {
-  background: #fff;
-  padding: 12px 14px;
-  border-bottom: 1px solid #e8e8e8;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
+.time-pick input{
+  width:26px;border:none;background:transparent;
+  font-size:16px;font-weight:700;color:#111;
+  text-align:center;font-family:inherit;outline:none;
+  font-variant-numeric:tabular-nums;padding:0;
 }
-.config-panel input[type=text] {
-  flex: 1;
-  min-width: 100px;
-  font-size: 14px;
-  padding: 8px 12px;
-  border: 1.5px solid #ddd;
-  border-radius: 8px;
-  outline: none;
-  font-family: inherit;
+.time-pick .sep{color:#bbb;font-weight:400;}
+.go-btn{
+  padding:8px 18px;background:#3dcbb4;color:#fff;
+  border:none;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:inherit;
 }
-.config-panel input[type=text]:focus { border-color: #3dcbb4; }
-.config-panel select {
-  font-size: 13px;
-  padding: 8px 8px;
-  border: 1.5px solid #ddd;
-  border-radius: 8px;
-  background: #fff;
-  outline: none;
-  font-family: inherit;
-}
-.start-btn {
-  padding: 8px 16px;
-  background: #3dcbb4;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-}
-.start-btn:disabled { background: #ccc; cursor: not-allowed; }
-.reset-btn {
-  padding: 8px 12px;
-  background: #888;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  display: none;
+.go-btn:disabled{background:#ccc;cursor:not-allowed;}
+.rst-btn{
+  padding:8px 12px;background:#888;color:#fff;
+  border:none;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:inherit;display:none;
 }
 
-/* ── 타이머 바 ── */
-.timer-bar {
-  background: #444;
-  color: #fff;
-  text-align: center;
-  padding: 10px 16px;
-  font-size: 24px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  transition: background 0.3s;
+/* 타이머 */
+.timer-bar{
+  text-align:center;padding:16px 16px 14px;
+  color:#fff;transition:background 0.25s;
 }
-.timer-bar .phase-tag {
-  font-size: 12px;
-  font-weight: 500;
-  background: rgba(255,255,255,0.18);
-  padding: 2px 10px;
-  border-radius: 20px;
-  letter-spacing: 0;
+.timer-bar.idle   {background:#555;}
+.timer-bar.wait   {background:#555;}
+.timer-bar.near   {background:#b35a00;}
+.timer-bar.open   {background:#1aaa8e;}
+.timer-bar.early  {background:#c0392b;}
+.timer-bar.done   {background:#185fa5;}
+.timer-digits{
+  font-size:40px;font-weight:700;
+  font-variant-numeric:tabular-nums;letter-spacing:2px;line-height:1;
 }
-.timer-bar.waiting { background: #555; }
-.timer-bar.open    { background: #1aaa8e; }
-.timer-bar.early   { background: #e05a2b; }
-.timer-bar.done    { background: #185fa5; }
-
-/* ── 신청 정보 본체 ── */
-.form-body {
-  background: #fff;
-  margin: 12px 12px 0;
-  border-radius: 10px;
-  padding: 20px 16px;
-  border: 1px solid #e8e8e8;
-}
-.form-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111;
-  margin-bottom: 16px;
+.timer-label{
+  font-size:12px;margin-top:5px;opacity:0.75;letter-spacing:0.5px;
 }
 
-.info-box {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin-bottom: 6px;
+/* 폼 */
+.form-body{
+  background:#fff;margin:12px 12px 0;
+  border-radius:10px;border:1px solid #e8e8e8;padding:20px 16px;
 }
-.global-tag {
-  display: inline-block;
-  border: 1.5px solid #888;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #555;
-  padding: 1px 10px;
-  margin-bottom: 10px;
-  letter-spacing: 0.5px;
+.form-title{font-size:18px;font-weight:700;color:#111;margin-bottom:16px;}
+.info-box{border:1px solid #e0e0e0;border-radius:8px;padding:12px 14px;margin-bottom:6px;}
+.global-tag{
+  display:inline-block;border:1.5px solid #888;border-radius:20px;
+  font-size:11px;font-weight:700;color:#555;padding:1px 10px;
+  margin-bottom:10px;letter-spacing:0.5px;
 }
-.info-row {
-  display: flex;
-  align-items: center;
-  padding: 5px 0;
-  font-size: 14px;
+.info-row{display:flex;align-items:center;padding:5px 0;font-size:14px;}
+.info-row .lbl{color:#888;min-width:36px;font-size:13px;}
+.info-row .val{font-weight:600;color:#111;}
+.notice{font-size:12px;color:#888;margin:6px 0 16px;}
+.field-group{margin-bottom:16px;}
+.field-label{font-size:13px;color:#555;margin-bottom:6px;font-weight:500;display:flex;align-items:center;gap:4px;}
+.req{color:#e05a2b;}
+.real-input{
+  width:100%;background:#f7f7f7;border:1.5px solid #e0e0e0;
+  border-radius:8px;padding:13px 14px;font-size:15px;color:#111;
+  font-family:inherit;outline:none;transition:border-color 0.2s,background 0.2s;
 }
-.info-row .lbl { color: #888; min-width: 36px; font-size: 13px; }
-.info-row .val { font-weight: 600; color: #111; }
+.real-input::placeholder{color:#bbb;font-size:14px;}
+.real-input:focus{border-color:#3dcbb4;background:#fff;}
+.real-input:disabled{background:#f2f2f2;color:#999;cursor:not-allowed;}
+.name-row{display:flex;gap:8px;}
+.phone-row{display:flex;gap:8px;}
+.country-box{
+  display:flex;align-items:center;gap:4px;
+  background:#f2f2f2;border:1.5px solid #e0e0e0;border-radius:8px;
+  padding:13px 12px;font-size:14px;color:#333;font-weight:600;min-width:72px;
+}
+.arrow{font-size:10px;color:#888;}
+.err{font-size:12px;color:#e05a2b;margin-top:5px;display:none;}
+.err.on{display:block;}
+.divider{height:1px;background:#f0f0f0;margin:16px 0;}
+.agree-item{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;gap:8px;}
+.agree-left{display:flex;align-items:flex-start;gap:8px;flex:1;}
+.chk{width:18px;height:18px;flex-shrink:0;margin-top:1px;}
+.agree-text{font-size:13px;color:#333;line-height:1.5;}
+.chevron{font-size:14px;color:#bbb;flex-shrink:0;}
 
-.notice { font-size: 12px; color: #888; margin: 6px 0 16px; }
+/* 참여 버튼 */
+.sub-area{margin:12px 12px 0;}
+.sub-btn{
+  width:100%;padding:17px;background:#3dcbb4;color:#fff;
+  border:none;border-radius:10px;font-size:17px;font-weight:700;
+  cursor:pointer;letter-spacing:0.5px;font-family:inherit;transition:transform 0.06s;
+}
+.sub-btn:active{transform:scale(0.97);}
+.sub-btn:disabled{background:#ccc;cursor:not-allowed;}
+.sub-btn.locked{background:#e05a2b;animation:puls .7s ease-in-out infinite alternate;}
+.sub-btn.go{animation:goA .4s ease-in-out infinite alternate;}
+@keyframes puls{from{opacity:1}to{opacity:.65}}
+@keyframes goA{from{background:#3dcbb4}to{background:#1aaa8e}}
 
-.field-group { margin-bottom: 16px; }
-.field-label { font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500; }
-.fake-input {
-  width: 100%;
-  background: #f2f2f2;
-  border-radius: 8px;
-  padding: 13px 14px;
-  font-size: 14px;
-  color: #bbb;
-}
+.footer-nav{text-align:center;margin-top:18px;font-size:12px;color:#bbb;}
 
-.phone-row { display: flex; gap: 8px; }
-.country-select {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #f2f2f2;
-  border-radius: 8px;
-  padding: 13px 12px;
-  font-size: 14px;
-  color: #333;
-  font-weight: 600;
-  min-width: 72px;
+/* 결과 */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center;z-index:100;
 }
-.country-select .arrow { font-size: 10px; color: #888; }
-.phone-num {
-  flex: 1;
-  background: #f2f2f2;
-  border-radius: 8px;
-  padding: 13px 14px;
-  font-size: 14px;
-  color: #bbb;
+.overlay.on{display:flex;}
+.sheet{
+  background:#fff;width:100%;max-width:430px;
+  border-radius:18px 18px 0 0;padding:30px 24px 36px;text-align:center;
 }
-
-.divider { height: 1px; background: #f0f0f0; margin: 16px 0; }
-
-.agree-item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #f5f5f5;
-  gap: 8px;
+.sh-icon{font-size:44px;margin-bottom:8px;}
+.sh-title{font-size:22px;font-weight:700;color:#111;margin-bottom:4px;}
+.sh-time{
+  font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;
+  margin:12px 0 4px;color:#1aaa8e;letter-spacing:-1px;
 }
-.agree-item:last-child { border-bottom: none; }
-.agree-left { display: flex; align-items: flex-start; gap: 8px; flex: 1; }
-.check-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
-.agree-text { font-size: 13px; color: #333; line-height: 1.5; }
-.chevron { font-size: 14px; color: #bbb; flex-shrink: 0; margin-top: 1px; }
-
-/* ── 참여 신청 버튼 ── */
-.submit-area { margin: 14px 12px 0; }
-.submit-btn {
-  width: 100%;
-  padding: 17px;
-  background: #3dcbb4;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 17px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: transform 0.06s;
-  font-family: inherit;
-}
-.submit-btn:active { transform: scale(0.97); }
-.submit-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-.submit-btn.locked {
-  background: #e05a2b;
-  animation: puls 0.7s ease-in-out infinite alternate;
-}
-.submit-btn.go {
-  animation: goAnim 0.4s ease-in-out infinite alternate;
-}
-@keyframes puls { from { opacity:1; } to { opacity:0.7; } }
-@keyframes goAnim { from { background:#3dcbb4; } to { background:#1aaa8e; } }
-
-.footer-nav {
-  text-align: center;
-  margin-top: 18px;
-  font-size: 12px;
-  color: #bbb;
+.sh-time.early{color:#e05a2b;}
+.sh-info{font-size:14px;color:#555;margin:8px 0 4px;line-height:1.7;}
+.sh-desc{font-size:13px;color:#888;margin-bottom:20px;}
+.sh-close{
+  width:100%;padding:14px;background:#3dcbb4;color:#fff;
+  border:none;border-radius:10px;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:inherit;
 }
 
-/* ── 결과 오버레이 ── */
-.result-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 100;
-}
-.result-overlay.show { display: flex; }
-.result-sheet {
-  background: #fff;
-  width: 100%;
-  max-width: 430px;
-  border-radius: 18px 18px 0 0;
-  padding: 30px 24px 36px;
-  text-align: center;
-}
-.result-icon { font-size: 44px; margin-bottom: 8px; }
-.result-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; color: #111; }
-.result-time {
-  font-size: 42px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin: 12px 0 4px;
-  color: #1aaa8e;
-  letter-spacing: -1px;
-}
-.result-time.early { color: #e05a2b; }
-.result-desc { font-size: 14px; color: #888; margin-bottom: 20px; }
-.result-close {
-  width: 100%;
-  padding: 14px;
-  background: #3dcbb4;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-/* ── 로그 패널 ── */
-.log-panel {
-  margin: 12px 12px 0;
-  background: #fff;
-  border-radius: 10px;
-  border: 1px solid #e8e8e8;
-  padding: 14px 16px;
-}
-.log-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.log-head-title { font-size: 14px; font-weight: 700; color: #111; }
-.log-clear { font-size: 12px; color: #bbb; border: none; background: none; cursor: pointer; font-family: inherit; }
-.log-clear:hover { color: #e05a2b; }
-
-.log-entry {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f5f5f5;
-  font-size: 13px;
-}
-.log-entry:last-child { border-bottom: none; }
-.log-rank { min-width: 28px; font-weight: 700; color: #888; font-size: 12px; }
-.log-player { flex: 1; font-weight: 600; color: #111; }
-.log-ms { font-variant-numeric: tabular-nums; color: #555; }
-.log-ms.best { color: #1aaa8e; font-weight: 700; }
-.log-ms.disq { color: #e05a2b; }
-.log-ts { font-size: 11px; color: #bbb; }
-.log-empty { text-align: center; color: #bbb; font-size: 13px; padding: 14px 0; }
+/* 로그 */
+.log-panel{margin:12px 12px 0;background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:14px 16px;}
+.log-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.log-head-title{font-size:14px;font-weight:700;color:#111;}
+.log-clr{font-size:12px;color:#bbb;border:none;background:none;cursor:pointer;font-family:inherit;}
+.log-clr:hover{color:#e05a2b;}
+.log-entry{font-size:13px;padding:8px 0;border-bottom:1px solid #f5f5f5;}
+.log-entry:last-child{border-bottom:none;}
+.log-top{display:flex;align-items:center;gap:10px;}
+.log-sub{font-size:11px;color:#bbb;margin-top:2px;padding-left:38px;}
+.log-rank{min-width:28px;font-weight:700;color:#888;font-size:12px;}
+.log-name{flex:1;font-weight:600;color:#111;}
+.log-diff{font-variant-numeric:tabular-nums;color:#555;font-size:13px;white-space:nowrap;}
+.log-diff.best{color:#1aaa8e;font-weight:700;}
+.log-diff.disq{color:#e05a2b;}
+.log-ts{font-size:11px;color:#bbb;white-space:nowrap;}
+.log-empty{text-align:center;color:#bbb;font-size:13px;padding:14px 0;}
 </style>
 </head>
 <body>
-<div id="game-wrap">
+<div id="wrap">
 
-  <!-- 설정 패널 -->
-  <div class="config-panel">
-    <input type="text" id="nameInput" placeholder="이름 입력 (예: 홍길동)" maxlength="10" />
-    <select id="waitSelect">
-      <option value="3">3초</option>
-      <option value="5" selected>5초</option>
-      <option value="7">7초</option>
-      <option value="10">10초</option>
-      <option value="15">15초</option>
-    </select>
-    <button class="start-btn" id="startBtn" onclick="startGame()">▶ 시작</button>
-    <button class="reset-btn" id="resetBtn" onclick="resetGame()">↺ 초기화</button>
+  <!-- 상단: 목표 시각 입력 + 시작 -->
+  <div class="top-bar">
+    <label>목표 시각</label>
+    <div class="time-pick">
+      <input id="tH" value="14" maxlength="2" inputmode="numeric"
+        oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)"
+        onblur="padT(this,23)"/>
+      <span class="sep">:</span>
+      <input id="tM" value="00" maxlength="2" inputmode="numeric"
+        oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)"
+        onblur="padT(this,59)"/>
+      <span class="sep">:</span>
+      <input id="tS" value="00" maxlength="2" inputmode="numeric"
+        oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)"
+        onblur="padT(this,59)"/>
+    </div>
+    <button class="go-btn" id="startBtn" onclick="startGame()">▶ 시작</button>
+    <button class="rst-btn" id="resetBtn" onclick="resetGame()">↺</button>
   </div>
 
-  <!-- 타이머 바 -->
-  <div class="timer-bar waiting" id="timerBar">
-    <span id="timerDigits">--:---</span>
-    <span class="phase-tag" id="phaseTag">대기</span>
+  <!-- 타이머 -->
+  <div class="timer-bar idle" id="timerBar">
+    <div class="timer-digits" id="timerDigits">--:---</div>
+    <div class="timer-label" id="timerLabel">시작 버튼을 눌러주세요</div>
   </div>
 
-  <!-- 신청 정보 폼 -->
+  <!-- 폼 -->
   <div class="form-body">
     <div class="form-title">신청 정보</div>
-
     <div class="info-box">
       <div class="global-tag">GLOBAL</div>
-      <div class="info-row">
-        <span class="lbl">이름</span>
-        <span class="val" id="displayFirst">───</span>
-      </div>
-      <div class="info-row">
-        <span class="lbl">성</span>
-        <span class="val" id="displayLast">───</span>
-      </div>
+      <div class="info-row"><span class="lbl">이름</span><span class="val" id="dispFirst">───</span></div>
+      <div class="info-row"><span class="lbl">성</span><span class="val" id="dispLast">───</span></div>
     </div>
     <div class="notice">*이름 정보는 수정이 불가능합니다.</div>
 
     <div class="field-group">
-      <div class="field-label">생년월일</div>
-      <div class="fake-input">8자리로 입력해주세요 (예: 19990101)</div>
+      <div class="field-label">이름 &amp; 성 <span class="req">*</span></div>
+      <div class="name-row">
+        <input class="real-input" type="text" id="inFirst" placeholder="이름 (예: 길동)" maxlength="10" oninput="syncName()"/>
+        <input class="real-input" type="text" id="inLast"  placeholder="성 (예: 홍)"    maxlength="10" oninput="syncName()"/>
+      </div>
+      <div class="err" id="errName">이름과 성을 모두 입력해주세요.</div>
     </div>
 
     <div class="field-group">
-      <div class="field-label">연락처</div>
+      <div class="field-label">생년월일 <span class="req">*</span></div>
+      <input class="real-input" type="text" id="inBirth" placeholder="8자리 (예: 19990101)" maxlength="8" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')"/>
+      <div class="err" id="errBirth">생년월일 8자리를 입력해주세요.</div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">연락처 <span class="req">*</span></div>
       <div class="phone-row">
-        <div class="country-select">+82 <span class="arrow">▾</span></div>
-        <div class="phone-num">010xxxxxxxx</div>
+        <div class="country-box">+82 <span class="arrow">▾</span></div>
+        <input class="real-input" type="text" id="inPhone" placeholder="010xxxxxxxx" maxlength="11" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" style="flex:1;"/>
       </div>
+      <div class="err" id="errPhone">올바른 전화번호를 입력해주세요.</div>
     </div>
 
     <div class="divider"></div>
-
     <div class="agree-item">
       <div class="agree-left">
-        <div class="check-icon">
-          <svg width="18" height="18" viewBox="0 0 18 18">
-            <circle cx="9" cy="9" r="9" fill="#3dcbb4"/>
-            <polyline points="4,9 7.5,12.5 14,6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <div class="chk">
+          <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="9" fill="#3dcbb4"/><polyline points="4,9 7.5,12.5 14,6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <span class="agree-text">개인정보 수집 이용 동의서</span>
       </div>
       <span class="chevron">﹀</span>
     </div>
-    <div class="agree-item">
-      <div class="agree-left">
-        <div class="check-icon">
-          <svg width="18" height="18" viewBox="0 0 18 18">
-            <circle cx="9" cy="9" r="9" fill="#3dcbb4"/>
-            <polyline points="4,9 7.5,12.5 14,6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <span class="agree-text">개인정보 제3자 제공 동의서 ((주)위버스컴니 > (주)에스엠엔터테인먼트)</span>
-      </div>
-      <span class="chevron">﹀</span>
-    </div>
-    <div class="agree-item">
-      <div class="agree-left">
-        <div class="check-icon">
-          <svg width="18" height="18" viewBox="0 0 18 18">
-            <circle cx="9" cy="9" r="9" fill="#3dcbb4"/>
-            <polyline points="4,9 7.5,12.5 14,6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <span class="agree-text">개인정보 제3자 제공 동의서 ((주)에스엠엔터테인먼트 > (주)카카오엔터테인먼트)</span>
-      </div>
-      <span class="chevron">﹀</span>
-    </div>
   </div>
 
-  <!-- 참여 신청 버튼 -->
-  <div class="submit-area">
-    <button class="submit-btn" id="submitBtn" onclick="pressBtn()" disabled>참여 신청</button>
+  <div class="sub-area">
+    <button class="sub-btn" id="subBtn" onclick="pressBtn()" disabled>참여 신청</button>
   </div>
-
   <div class="footer-nav">사녹폼림 · 신청정보 · 전화번호</div>
 
-  <!-- 로그 패널 -->
   <div class="log-panel">
     <div class="log-head">
       <span class="log-head-title">📋 기록 로그</span>
-      <button class="log-clear" onclick="clearLog()">전체 삭제</button>
+      <button class="log-clr" onclick="clearLog()">전체 삭제</button>
     </div>
     <div id="logList"><div class="log-empty">아직 기록이 없습니다</div></div>
   </div>
 
-  <!-- 결과 시트 -->
-  <div class="result-overlay" id="resultOverlay">
-    <div class="result-sheet">
-      <div class="result-icon" id="resIcon">✓</div>
-      <div class="result-title" id="resTitle">신청 완료!</div>
-      <div class="result-time" id="resTime">0.000초</div>
-      <div class="result-desc" id="resDesc"></div>
-      <button class="result-close" onclick="closeResult()">↺ 다시 도전</button>
+  <!-- 결과 -->
+  <div class="overlay" id="overlay">
+    <div class="sheet">
+      <div class="sh-icon" id="shIcon">✓</div>
+      <div class="sh-title" id="shTitle">신청 완료!</div>
+      <div class="sh-time" id="shTime">+0.000초</div>
+      <div class="sh-info" id="shInfo"></div>
+      <div class="sh-desc" id="shDesc"></div>
+      <button class="sh-close" onclick="closeResult()">↺ 다시 도전</button>
     </div>
   </div>
-
 </div>
 
 <script>
-let phase = 'idle';
-let playerName = '';
-let waitMs = 5000;
-let rafId = null;
-let zeroTime = null;
-let hasPressed = false;
-let log = [];
+let phase='idle', playerName='', tH=14, tM=0, tS=0;
+let rafId=null, hasPressed=false, log=[];
 
-function startGame() {
-  const n = document.getElementById('nameInput').value.trim();
-  if (!n) { document.getElementById('nameInput').focus(); return; }
-  playerName = n;
+function pad2(n){return n.toString().padStart(2,'0');}
+function padT(el,max){let v=parseInt(el.value)||0;if(v>max)v=max;el.value=pad2(v);}
 
-  const parts = n.split(' ');
-  document.getElementById('displayFirst').textContent = parts[0] || n;
-  document.getElementById('displayLast').textContent = parts[1] || ' ';
-
-  waitMs = parseInt(document.getElementById('waitSelect').value) * 1000;
-  phase = 'waiting';
-  hasPressed = false;
-
-  document.getElementById('startBtn').style.display = 'none';
-  document.getElementById('resetBtn').style.display = 'inline-block';
-
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = false;
-  btn.className = 'submit-btn locked';
-  btn.textContent = '참여 신청 (대기 중 — 일찍 누르면 실격!)';
-
-  setBar('waiting', '대기 중...');
-
-  const t0 = performance.now();
-
-  function tick(now) {
-    if (phase !== 'waiting') return;
-    const rem = waitMs - (now - t0);
-    if (rem > 0) {
-      const s  = Math.floor(rem / 1000);
-      const ms = Math.floor(rem % 1000);
-      document.getElementById('timerDigits').textContent =
-        s.toString().padStart(2,'0') + ':' + ms.toString().padStart(3,'0');
-      rafId = requestAnimationFrame(tick);
-    } else {
-      openNow(now);
-    }
-  }
-  rafId = requestAnimationFrame(tick);
+/* 이름 반영 */
+function syncName(){
+  const f=document.getElementById('inFirst').value.trim();
+  const l=document.getElementById('inLast').value.trim();
+  document.getElementById('dispFirst').textContent=f||'───';
+  document.getElementById('dispLast').textContent=l||'───';
 }
 
-function openNow(now) {
-  phase = 'open';
-  zeroTime = now;
-  setBar('open', '지금!');
-  document.getElementById('timerDigits').textContent = '00:000';
-  const btn = document.getElementById('submitBtn');
-  btn.className = 'submit-btn go';
-  btn.textContent = '참여 신청 ← 지금 눌러!';
+/* 유효성 */
+function validate(){
+  let ok=true;
+  const f=document.getElementById('inFirst').value.trim();
+  const l=document.getElementById('inLast').value.trim();
+  const b=document.getElementById('inBirth').value.trim();
+  const p=document.getElementById('inPhone').value.trim();
+  tog('errName',!f||!l); if(!f||!l) ok=false;
+  tog('errBirth',b.length!==8); if(b.length!==8) ok=false;
+  tog('errPhone',p.length<10); if(p.length<10) ok=false;
+  return ok;
+}
+function tog(id,show){document.getElementById(id).classList.toggle('on',show);}
 
-  function countUp(now2) {
-    if (phase !== 'open') return;
-    const el = now2 - zeroTime;
-    const s  = Math.floor(el / 1000);
-    const ms = Math.floor(el % 1000);
-    document.getElementById('timerDigits').textContent =
-      s.toString().padStart(2,'0') + ':' + ms.toString().padStart(3,'0');
-    rafId = requestAnimationFrame(countUp);
-  }
-  rafId = requestAnimationFrame(countUp);
+/* 목표 timestamp */
+function getTarget(){
+  const now=new Date();
+  const t=new Date(now.getFullYear(),now.getMonth(),now.getDate(),tH,tM,tS,0);
+  if(t<=now) t.setDate(t.getDate()+1);
+  return t.getTime();
 }
 
-function pressBtn() {
-  if (phase === 'idle' || hasPressed) return;
-  hasPressed = true;
+/* 시작 */
+function startGame(){
+  if(!validate()) return;
+  tH=parseInt(document.getElementById('tH').value)||0;
+  tM=parseInt(document.getElementById('tM').value)||0;
+  tS=parseInt(document.getElementById('tS').value)||0;
+  const f=document.getElementById('inFirst').value.trim();
+  const l=document.getElementById('inLast').value.trim();
+  playerName=l+f;
+  phase='wait'; hasPressed=false;
+  setDisabled(true);
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('resetBtn').style.display='inline-block';
+  const btn=document.getElementById('subBtn');
+  btn.disabled=false; btn.className='sub-btn locked';
+  btn.textContent='참여 신청 (대기 중 — 일찍 누르면 실격!)';
+  setBar('wait','대기 중...');
+  loop();
+}
 
-  if (phase === 'waiting') {
+function loop(){
+  if(phase!=='wait'&&phase!=='near') return;
+  const rem=getTarget()-Date.now();
+  if(rem<=0){openNow();return;}
+
+  const totalSec=Math.floor(rem/1000);
+  const ms3=Math.floor(rem%1000);
+
+  if(rem<=60000){
+    // 59초 001 형태
+    setBar('near', totalSec+'초 '+ms3.toString().padStart(3,'0'));
+  } else {
+    const hh=Math.floor(totalSec/3600);
+    const mm=Math.floor((totalSec%3600)/60);
+    const ss=totalSec%60;
+    setBar('wait', pad2(hh)+':'+pad2(mm)+':'+pad2(ss));
+  }
+  rafId=requestAnimationFrame(loop);
+}
+
+function openNow(){
+  phase='open';
+  const openAt=Date.now();
+  const btn=document.getElementById('subBtn');
+  btn.className='sub-btn go'; btn.textContent='참여 신청 ← 지금 눌러!';
+
+  function up(){
+    if(phase!=='open') return;
+    const el=Date.now()-openAt;
+    const s=Math.floor(el/1000);
+    const ms3=Math.floor(el%1000).toString().padStart(3,'0');
+    setBar('open','+'+s+'초 '+ms3);
+    rafId=requestAnimationFrame(up);
+  }
+  rafId=requestAnimationFrame(up);
+}
+
+/* 클릭 */
+function pressBtn(){
+  if(phase==='idle'||hasPressed) return;
+  hasPressed=true;
+
+  if(phase==='wait'||phase==='near'){
     cancelAnimationFrame(rafId);
-    phase = 'done';
-    setBar('early', '실격!');
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').className = 'submit-btn';
-    document.getElementById('submitBtn').textContent = '참여 신청';
-    addLog(playerName, null, true);
-    showResult(true, 0);
-    document.getElementById('startBtn').style.display = 'inline-block';
-    document.getElementById('resetBtn').style.display = 'none';
+    phase='done';
+    const earlyMs=getTarget()-Date.now();
+    setBar('early','실격!');
+    lockBtn(); addLog(playerName,-earlyMs,true); showResult(true,-earlyMs); endState();
     return;
   }
-
-  if (phase === 'open') {
+  if(phase==='open'){
     cancelAnimationFrame(rafId);
-    const diffMs = performance.now() - zeroTime;
-    phase = 'done';
-    const s  = Math.floor(diffMs / 1000);
-    const ms = Math.floor(diffMs % 1000);
-    document.getElementById('timerDigits').textContent =
-      s.toString().padStart(2,'0') + ':' + ms.toString().padStart(3,'0');
-    setBar('done', '완료!');
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').className = 'submit-btn';
-    document.getElementById('submitBtn').textContent = '참여 신청';
-    addLog(playerName, diffMs, false);
-    showResult(false, diffMs);
-    document.getElementById('startBtn').style.display = 'inline-block';
-    document.getElementById('resetBtn').style.display = 'none';
+    const now=new Date();
+    const openAt=new Date(now.getFullYear(),now.getMonth(),now.getDate(),tH,tM,tS,0).getTime();
+    const lateMs=Date.now()-openAt;
+    phase='done';
+    setBar('done','+'+(lateMs/1000).toFixed(3)+'초');
+    lockBtn(); addLog(playerName,lateMs,false); showResult(false,lateMs); endState();
   }
 }
 
-function setBar(cls, tag) {
-  document.getElementById('timerBar').className = 'timer-bar ' + cls;
-  document.getElementById('phaseTag').textContent = tag;
+function lockBtn(){
+  const b=document.getElementById('subBtn');
+  b.disabled=true; b.className='sub-btn'; b.textContent='참여 신청';
+}
+function endState(){
+  document.getElementById('startBtn').style.display='inline-block';
+  document.getElementById('resetBtn').style.display='none';
+}
+function setBar(cls,label){
+  document.getElementById('timerBar').className='timer-bar '+cls;
+  document.getElementById('timerLabel').textContent=label;
 }
 
-function showResult(isEarly, ms) {
-  const o = document.getElementById('resultOverlay');
-  if (isEarly) {
-    document.getElementById('resIcon').textContent = '✕';
-    document.getElementById('resTitle').textContent = '실격!';
-    document.getElementById('resTime').textContent = '너무 일찍!';
-    document.getElementById('resTime').className = 'result-time early';
-    document.getElementById('resDesc').textContent = '폼이 열리기 전에 눌렀습니다';
+/* 결과 */
+function showResult(isEarly,diffMs){
+  const b=document.getElementById('inBirth').value.trim();
+  const p=document.getElementById('inPhone').value.trim();
+  const bFmt=b.length===8?b.slice(0,4)+'.'+b.slice(4,6)+'.'+b.slice(6):b;
+  const pFmt=p.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3');
+  document.getElementById('shInfo').innerHTML='<strong>'+playerName+'</strong><br>'+bFmt+'&nbsp;|&nbsp;'+pFmt;
+
+  if(isEarly){
+    document.getElementById('shIcon').textContent='✕';
+    document.getElementById('shTitle').textContent='실격!';
+    document.getElementById('shTime').textContent='-'+(Math.abs(diffMs)/1000).toFixed(3)+'초';
+    document.getElementById('shTime').className='sh-time early';
+    document.getElementById('shDesc').textContent='목표 시각보다 일찍 눌렀습니다';
   } else {
-    document.getElementById('resIcon').textContent = '✓';
-    document.getElementById('resTitle').textContent = '신청 완료!';
-    document.getElementById('resTime').textContent = (ms / 1000).toFixed(3) + '초';
-    document.getElementById('resTime').className = 'result-time';
-    const rank = log.filter(e => !e.isEarly && e.ms != null && e.ms < ms).length + 1;
-    document.getElementById('resDesc').textContent = '현재 순위: ' + rank + '위';
+    document.getElementById('shIcon').textContent='✓';
+    document.getElementById('shTitle').textContent='신청 완료!';
+    document.getElementById('shTime').textContent='+'+(diffMs/1000).toFixed(3)+'초';
+    document.getElementById('shTime').className='sh-time';
+    const valid=log.filter(e=>!e.isEarly&&e.ms!=null);
+    const rank=valid.filter(e=>e.ms<diffMs).length+1;
+    document.getElementById('shDesc').textContent='현재 순위: '+rank+'위';
   }
-  o.classList.add('show');
+  document.getElementById('overlay').classList.add('on');
 }
+function closeResult(){document.getElementById('overlay').classList.remove('on');resetGame();}
 
-function closeResult() {
-  document.getElementById('resultOverlay').classList.remove('show');
-  resetGame();
-}
-
-function resetGame() {
+function resetGame(){
   cancelAnimationFrame(rafId);
-  phase = 'idle'; hasPressed = false;
-  document.getElementById('timerDigits').textContent = '--:---';
-  setBar('waiting', '대기');
-  document.getElementById('startBtn').style.display = 'inline-block';
-  document.getElementById('resetBtn').style.display = 'none';
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.className = 'submit-btn';
-  btn.textContent = '참여 신청';
+  phase='idle'; hasPressed=false;
+  document.getElementById('timerDigits').textContent='--:---';
+  setBar('idle','시작 버튼을 눌러주세요');
+  document.getElementById('startBtn').style.display='inline-block';
+  document.getElementById('resetBtn').style.display='none';
+  const b=document.getElementById('subBtn');
+  b.disabled=true; b.className='sub-btn'; b.textContent='참여 신청';
+  setDisabled(false);
+}
+function setDisabled(v){
+  ['inFirst','inLast','inBirth','inPhone','tH','tM','tS']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=v;});
 }
 
-function addLog(name, ms, isEarly) {
-  log.unshift({ name, ms, isEarly, ts: new Date() });
+/* 로그 */
+function addLog(name,ms,isEarly){
+  const b=document.getElementById('inBirth').value.trim();
+  const p=document.getElementById('inPhone').value.trim();
+  log.unshift({name,ms,isEarly,birth:b,phone:p,ts:new Date()});
   renderLog();
 }
+function renderLog(){
+  const list=document.getElementById('logList');
+  if(!log.length){list.innerHTML='<div class="log-empty">아직 기록이 없습니다</div>';return;}
+  const valid=log.filter(e=>!e.isEarly&&e.ms!=null).sort((a,b)=>a.ms-b.ms);
+  list.innerHTML='';
+  log.forEach(entry=>{
+    const wrap=document.createElement('div'); wrap.className='log-entry';
+    const top=document.createElement('div'); top.className='log-top';
 
-function renderLog() {
-  const list = document.getElementById('logList');
-  if (!log.length) {
-    list.innerHTML = '<div class="log-empty">아직 기록이 없습니다</div>';
-    return;
-  }
-  const valid = log.filter(e => !e.isEarly && e.ms != null).sort((a,b) => a.ms - b.ms);
-  list.innerHTML = '';
-  log.forEach(entry => {
-    const div = document.createElement('div');
-    div.className = 'log-entry';
+    const rank=document.createElement('div'); rank.className='log-rank';
+    if(!entry.isEarly&&entry.ms!=null){
+      const r=valid.indexOf(entry)+1;
+      rank.textContent=r===1?'🥇':r===2?'🥈':r===3?'🥉':r+'위';
+    } else rank.textContent='–';
 
-    const rank = document.createElement('div');
-    rank.className = 'log-rank';
-    if (!entry.isEarly && entry.ms != null) {
-      const r = valid.indexOf(entry) + 1;
-      rank.textContent = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r + '위';
-    } else { rank.textContent = '–'; }
+    const name=document.createElement('div'); name.className='log-name';
+    name.textContent=entry.name;
 
-    const player = document.createElement('div');
-    player.className = 'log-player';
-    player.textContent = entry.name;
-
-    const msEl = document.createElement('div');
-    msEl.className = 'log-ms';
-    if (entry.isEarly) {
-      msEl.textContent = '실격';
-      msEl.classList.add('disq');
+    const diff=document.createElement('div'); diff.className='log-diff';
+    if(entry.isEarly){
+      diff.textContent='-'+(Math.abs(entry.ms)/1000).toFixed(3)+'초';
+      diff.classList.add('disq');
     } else {
-      msEl.textContent = (entry.ms / 1000).toFixed(3) + '초';
-      if (valid[0] === entry) msEl.classList.add('best');
+      diff.textContent='+'+(entry.ms/1000).toFixed(3)+'초';
+      if(valid[0]===entry) diff.classList.add('best');
     }
 
-    const ts = document.createElement('div');
-    ts.className = 'log-ts';
-    const t = entry.ts;
-    ts.textContent = [t.getHours(), t.getMinutes(), t.getSeconds()]
-      .map(n => n.toString().padStart(2,'0')).join(':');
+    const ts=document.createElement('div'); ts.className='log-ts';
+    const t=entry.ts;
+    ts.textContent=[t.getHours(),t.getMinutes(),t.getSeconds()]
+      .map(n=>n.toString().padStart(2,'0')).join(':');
 
-    div.append(rank, player, msEl, ts);
-    list.appendChild(div);
+    top.append(rank,name,diff,ts);
+
+    const sub=document.createElement('div'); sub.className='log-sub';
+    const bf=entry.birth||'';
+    const pf=(entry.phone||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3');
+    const bFmt=bf.length===8?bf.slice(0,4)+'.'+bf.slice(4,6)+'.'+bf.slice(6):bf;
+    sub.textContent=bFmt+(bFmt&&pf?'  |  ':'')+pf;
+
+    wrap.append(top,sub);
+    list.appendChild(wrap);
   });
 }
-
-function clearLog() { log = []; renderLog(); }
-
-document.getElementById('nameInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') startGame();
-});
+function clearLog(){log=[];renderLog();}
 </script>
 </body>
 </html>
